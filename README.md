@@ -322,6 +322,12 @@ cd demo && python app.py
 
 [![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
 
+## Built With
+
+[![ggcode](https://img.shields.io/badge/built%20with-ggcode-blue)](https://github.com/topcheer/ggcode)
+
+This project was built using [ggcode](https://github.com/topcheer/ggcode) — an AI coding assistant for terminal-based development.
+
 ## License
 
 MIT
