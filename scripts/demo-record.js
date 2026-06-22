@@ -3,10 +3,14 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 
 /**
- * Python Debug Agent v0.1.0 — Full demo recording (~30 tools / 10 inspectors)
+ * Python Debug Agent v0.5.0 — Full demo recording (82 tools / 20 inspectors)
  *
- * 7 sections using NATURAL LANGUAGE prompts (no explicit tool names).
+ * 10 sections using NATURAL LANGUAGE prompts (no explicit tool names).
  * The LLM must autonomously decide which tools to invoke.
+ *
+ * New v0.5.0 inspectors: Security, Health, Scheduler, Error Tracking,
+ * WebSocket, plus Redis, Flask routes, SQLAlchemy, Logging, Cache,
+ * Outbound HTTP, Metrics.
  *
  * Usage:
  *   1. Start demo: cd demo && LLM_API_KEY=your-key python app.py
@@ -70,13 +74,11 @@ async function pause(page, ms = 3000) {
   await page.waitForTimeout(ms);
 }
 
-// --- Section 1: Python Runtime + Memory + GC --------------------------------
-// Tools: get_runtime_info, get_memory_summary, get_gc_stats, trigger_gc,
-//        get_tracemalloc_stats, get_process_info, get_disk_usage
+// --- Section 1: Memory (tracemalloc) + GC Stats ────────────────────────────
 
-async function section1_runtime(page) {
-  console.log('  [1/7] Python Runtime + Memory + GC');
-  await typeMessage(page, "My Flask app feels sluggish. Can you check the overall runtime health — Python version, memory usage, and GC statistics?");
+async function section1_memory_gc(page) {
+  console.log('  [1/10] Memory (tracemalloc) + GC Stats');
+  await typeMessage(page, "My Flask app feels sluggish under load. Can you check the overall runtime health — Python version, memory usage, and GC statistics?");
   await sendAndWait(page);
   await pause(page, 4000);
 
@@ -84,119 +86,165 @@ async function section1_runtime(page) {
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "What's the process info — PID, CPU time, and are we running in a container? Also check disk space.");
-  await sendAndWait(page);
-  await pause(page, 4000);
-
   await typeMessage(page, "Try forcing a garbage collection — I want to see how much memory can be reclaimed and if there are reference cycles.");
   await sendAndWait(page);
   await pause(page, 5000);
+  console.log('  → Transition: Threads + Async Tasks + Signals');
 }
 
-// --- Section 2: Threads + Async Tasks --------------------------------------
-// Tools: get_thread_info, get_thread_count, get_thread_traceback,
-//        get_async_tasks, get_event_loop_info
+// --- Section 2: Threads + Async Tasks + Signals ────────────────────────────
 
-async function section2_threads_async(page) {
-  console.log('  [2/7] Threads + Async Tasks');
-  await typeMessage(page, "Show me all the threads running in this process — their names, daemon status, and whether they're alive.");
-  await sendAndWait(page);
-  await pause(page, 4000);
-
-  await typeMessage(page, "Get the traceback for the main thread — I want to see where it's currently executing.");
+async function section2_threads_signals(page) {
+  console.log('  [2/10] Threads + Async Tasks + Signals');
+  await typeMessage(page, "Show me all the threads running in this process — their names, daemon status, and whether they're alive. Also show thread count.");
   await sendAndWait(page);
   await pause(page, 4000);
 
   await typeMessage(page, "Is there an asyncio event loop running? If so, show me the event loop details and any pending async tasks.");
   await sendAndWait(page);
-  await pause(page, 5000);
-}
-
-// --- Section 3: Modules + Dependencies -------------------------------------
-// Tools: get_loaded_modules, get_import_stats, get_module_detail,
-//        get_installed_packages, get_python_path
-
-async function section3_modules(page) {
-  console.log('  [3/7] Modules + Dependencies');
-  await typeMessage(page, "What Python modules are loaded? Show me the import statistics — total count and the largest modules by file size.");
-  await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Show me details about the flask module specifically — its version, file path, and public attributes.");
-  await sendAndWait(page);
-  await pause(page, 4000);
-
-  await typeMessage(page, "List all installed packages and check the Python module search paths.");
+  await typeMessage(page, "What signal handlers are registered? Show me which signals the application is listening for and their handler functions.");
   await sendAndWait(page);
   await pause(page, 5000);
+  console.log('  → Transition: Database (SQLAlchemy) + Redis Pool');
 }
 
-// --- Section 4: Framework + Routes + HTTP Requests --------------------------
-// Tools: get_routes, get_middleware, get_recent_requests, get_slow_requests,
-//        get_error_requests, get_request_stats
+// --- Section 3: Database (SQLAlchemy) + Redis Pool ─────────────────────────
 
-async function section4_http(page) {
-  console.log('  [4/7] Framework Routes + HTTP Request Tracking');
-  await typeMessage(page, "What API routes does this Flask app expose? List all the registered endpoints.");
+async function section3_db_redis(page) {
+  console.log('  [3/10] Database (SQLAlchemy) + Redis Pool');
+  await typeMessage(page, "Are there any SQLAlchemy engines in this application? Show me their connection pool status — active, idle, and checked-out connections.");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Show me the recent HTTP requests that came in. What are the request statistics — P50, P95, P99 latency and error rate?");
+  await typeMessage(page, "Are there any slow database queries logged? Show me queries that took more than 100ms with their SQL text.");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Are there any slow requests? Show me requests that took more than 100ms. Also show any error requests.");
+  await typeMessage(page, "Check the Redis connection pool — how many connections are active and idle? Show me any Redis operation statistics.");
   await sendAndWait(page);
   await pause(page, 5000);
+  console.log('  → Transition: Flask Routes + Jinja2 + Logging Tree');
 }
 
-// --- Section 5: Database + Environment -------------------------------------
-// Tools: get_sqlalchemy_engines, get_db_connections,
-//        get_environment_variables
+// --- Section 4: Flask Routes + Jinja2 + Logging Tree ───────────────────────
 
-async function section5_database(page) {
-  console.log('  [5/7] Database + Environment');
-  await typeMessage(page, "Are there any SQLAlchemy engines in this application? Show me their connection pool status.");
+async function section4_routes_logging(page) {
+  console.log('  [4/10] Flask Routes + Jinja2 + Logging Tree');
+  await typeMessage(page, "What API routes does this Flask app expose? List all the registered endpoints with their methods.");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Check database connection pools and active connections if available.");
+  await typeMessage(page, "Show me the Jinja2 template environment — what templates are loaded and what filters are registered?");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "What environment variables are set? Filter for ones that might contain configuration — but mask any secrets.");
+  await typeMessage(page, "Show me the Python logging tree — all configured loggers, their levels, handlers, and formatters.");
   await sendAndWait(page);
   await pause(page, 5000);
+  console.log('  → Transition: HTTP Requests + Cache Stats + Metrics');
 }
 
-// --- Section 6: Object Counts + Reference Cycles + System --------------------
-// Tools: get_object_counts, get_ref_cycles, get_gc_stats,
-//        get_system_info
+// --- Section 5: HTTP Requests + Cache Stats + Metrics ──────────────────────
 
-async function section6_objects_system(page) {
-  console.log('  [6/7] Object Analysis + System');
-  await typeMessage(page, "How many live Python objects are there? Show me the object counts by type — the top 20 types.");
+async function section5_http_cache(page) {
+  console.log('  [5/10] HTTP Requests + Cache Stats + Metrics');
+  await typeMessage(page, "What HTTP requests have come in recently? Show me request statistics — P50, P95, P99 latency and error rate. Also show any slow or error requests.");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Detect reference cycles in the garbage collector. How many cycles were found and what types are involved?");
+  await typeMessage(page, "What's the cache status? Show me cache hit and miss rates, total keys, and memory usage for any in-memory caches like functools.lru_cache.");
   await sendAndWait(page);
   await pause(page, 4000);
 
-  await typeMessage(page, "Show me system information — OS, CPU cores, and load average.");
+  await typeMessage(page, "Show me the application metrics — request counts, error rates, latency histograms, and any custom metrics.");
   await sendAndWait(page);
   await pause(page, 5000);
+  console.log('  → Transition: Security (auth config, sessions, CORS)');
 }
 
-// --- Section 7: Comprehensive Debugging -------------------------------------
+// --- Section 6: Security (auth config, sessions, CORS) ─────────────────────
 
-async function section7_comprehensive(page) {
-  console.log('  [7/7] Comprehensive Debugging Scenario');
-  await typeMessage(page, "I'm debugging a performance issue. Give me a comprehensive overview: runtime info, memory and GC stats, thread count, recent HTTP requests with errors, and loaded module count — all in one summary.");
+async function section6_security(page) {
+  console.log('  [6/10] Security (auth config, sessions, CORS)');
+  await typeMessage(page, "I'm doing a security audit. What authentication and authorization middleware is configured? Show me auth settings and any Flask-Login or JWT configuration.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Are there any active sessions? Show me session details — how many are active and their expiry. Also show me the CORS configuration.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Check for potential security issues — are there any environment variables exposing secrets, insecure configurations, or missing CSRF protection?");
+  await sendAndWait(page);
+  await pause(page, 5000);
+  console.log('  → Transition: Health Checks + Scheduler');
+}
+
+// --- Section 7: Health Checks + Scheduler ──────────────────────────────────
+
+async function section7_health_scheduler(page) {
+  console.log('  [7/10] Health Checks + Scheduler');
+  await typeMessage(page, "Run a health check on the database connection — is it reachable and responding quickly? Also check the Redis connection health.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Are there any scheduled or background jobs running? Show me the scheduler status and any APScheduler or Celery task queues.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Give me an overall readiness summary — are all critical dependencies healthy and are there any queue backlogs?");
+  await sendAndWait(page);
+  await pause(page, 5000);
+  console.log('  → Transition: Error Tracking + Warnings');
+}
+
+// --- Section 8: Error Tracking + Warnings ──────────────────────────────────
+
+async function section8_errors_warnings(page) {
+  console.log('  [8/10] Error Tracking + Warnings');
+  await typeMessage(page, "Show me recent errors tracked by the application — any exceptions, tracebacks, or error-level log entries.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Are there any Python warnings captured? Show me recent warnings with their category, message, and source location.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Are there any WebSocket connections active? Show me connection details and any connection-related errors.");
+  await sendAndWait(page);
+  await pause(page, 5000);
+  console.log('  → Transition: Outbound HTTP + FD + FastAPI/OpenAPI');
+}
+
+// --- Section 9: Outbound HTTP + FD + FastAPI/OpenAPI ───────────────────────
+
+async function section9_outbound_fastapi(page) {
+  console.log('  [9/10] Outbound HTTP + FD + FastAPI/OpenAPI');
+  await typeMessage(page, "What outbound HTTP requests has the application made recently? Show me external API calls with response times.");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "How many file descriptors are currently open? Is there any risk of hitting the FD limit?");
+  await sendAndWait(page);
+  await pause(page, 4000);
+
+  await typeMessage(page, "Is this app running as FastAPI or Flask? Show me the OpenAPI schema or route map with response models if available.");
+  await sendAndWait(page);
+  await pause(page, 5000);
+  console.log('  → Transition: Comprehensive Multi-Tool Debugging');
+}
+
+// --- Section 10: Comprehensive Multi-Tool Debugging ────────────────────────
+
+async function section10_comprehensive(page) {
+  console.log('  [10/10] Comprehensive Multi-Tool Debugging');
+  await typeMessage(page, "I'm investigating a production incident. Give me a comprehensive overview: runtime info, memory and GC stats, thread count, recent HTTP requests with errors, database and Redis pool health, and any tracked errors — all in one summary.");
   await sendAndWait(page);
   await pause(page, 6000);
 
-  await typeMessage(page, "Now check: object counts, reference cycles, and system load. Summarize the app's overall health.");
+  await typeMessage(page, "Now check: object counts, reference cycles, security settings, scheduler status, and system load. Summarize the app's overall health and flag any concerns.");
   await sendAndWait(page);
   await pause(page, 5000);
 }
@@ -206,8 +254,8 @@ async function section7_comprehensive(page) {
 (async () => {
   console.log(`
 +--------------------------------------------------------------+
-|  Python Debug Agent v0.1.0 — Demo Recording                  |
-|  ~30 tools / 10 inspectors                                   |
+|  Python Debug Agent v0.5.0 — Demo Recording                  |
+|  82 tools / 20 inspectors                                    |
 +--------------------------------------------------------------+
   `);
 
@@ -253,13 +301,16 @@ async function section7_comprehensive(page) {
   await pause(page, 1000);
 
   const sections = [
-    { name: '01-runtime-memory-gc', fn: section1_runtime },
-    { name: '02-threads-async', fn: section2_threads_async },
-    { name: '03-modules-deps', fn: section3_modules },
-    { name: '04-routes-http', fn: section4_http },
-    { name: '05-database-env', fn: section5_database },
-    { name: '06-objects-system', fn: section6_objects_system },
-    { name: '07-comprehensive', fn: section7_comprehensive },
+    { name: '01-memory-gc', fn: section1_memory_gc },
+    { name: '02-threads-signals', fn: section2_threads_signals },
+    { name: '03-db-redis', fn: section3_db_redis },
+    { name: '04-routes-jinja-logging', fn: section4_routes_logging },
+    { name: '05-http-cache-metrics', fn: section5_http_cache },
+    { name: '06-security', fn: section6_security },
+    { name: '07-health-scheduler', fn: section7_health_scheduler },
+    { name: '08-errors-warnings', fn: section8_errors_warnings },
+    { name: '09-outbound-fd-fastapi', fn: section9_outbound_fastapi },
+    { name: '10-comprehensive', fn: section10_comprehensive },
   ];
 
   const startTime = Date.now();

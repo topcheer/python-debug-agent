@@ -339,6 +339,191 @@ if _HAS_REDIS:
 if _HAS_CELERY:
     register_celery_app("default", celery_app)
 
+# ─── v0.5.0 Inspector integrations ───────────────────────────────────────────
+
+from debug_agent.inspectors.security_inspector import (  # noqa: E402
+    register_auth_config,
+    register_session_store,
+)
+from debug_agent.inspectors.health_inspector import register_health_check  # noqa: E402
+from debug_agent.inspectors.scheduler_inspector import (  # noqa: E402
+    register_scheduled_job,
+    record_job_run,
+    set_next_run,
+)
+from debug_agent.inspectors.error_tracking import (  # noqa: E402
+    install_flask_error_handler,
+    capture_error,
+)
+from debug_agent.inspectors.websocket_inspector import register_ws_server  # noqa: E402
+from functools import wraps  # noqa: E402
+import threading  # noqa: E402
+
+# ─── Security: API Key auth ───────────────────────────────────────────────────
+
+API_KEY = os.environ.get("API_KEY", "demo-secret-key-12345")
+ACTIVE_SESSIONS: dict[str, dict] = {}
+
+
+def _check_api_key() -> bool:
+    """Return True if the X-API-Key header matches."""
+    provided = request.headers.get("X-API-Key", "")
+    return provided == API_KEY
+
+
+def require_api_key(fn):
+    """Decorator: enforce X-API-Key header on a route."""
+    @wraps(fn)
+    def _wrapper(*args, **kwargs):
+        if not _check_api_key():
+            abort(401, "Missing or invalid X-API-Key header")
+        return fn(*args, **kwargs)
+    return _wrapper
+
+
+# Register the auth configuration with the security inspector
+register_auth_config("api_key", {
+    "scheme": "api_key",
+    "header_name": "X-API-Key",
+    "secret_key": API_KEY,
+    "token_expiry": None,
+    "protected_paths": ["/api/orders"],
+})
+
+# Register a simple in-memory session store for demo purposes
+register_session_store("demo_sessions", ACTIVE_SESSIONS)
+
+
+@app.before_request
+def _enforce_api_key():
+    """Enforce X-API-Key on all /api/orders routes."""
+    if request.path.startswith("/api/orders"):
+        if not _check_api_key():
+            abort(401, "Missing or invalid X-API-Key header. Set the X-API-Key header.")
+
+
+# ─── Health checks ────────────────────────────────────────────────────────────
+
+
+@register_health_check("database")
+def _health_database():
+    """Check database connectivity via SELECT 1."""
+    try:
+        if _HAS_FLASK_SQLALCHEMY:
+            db.session.execute(db.text("SELECT 1"))
+            return {"status": "UP", "details": {"engine": "flask_sqlalchemy"}}
+        elif _HAS_SQLALCHEMY:
+            with SessionLocal() as session:
+                session.execute(__import__("sqlalchemy").text("SELECT 1"))
+            return {"status": "UP", "details": {"engine": "sqlalchemy"}}
+        else:
+            return {"status": "DEGRADED", "details": {"message": "No database configured"}}
+    except Exception as exc:
+        return {"status": "DOWN", "details": {"error": str(exc)}}
+
+
+@register_health_check("redis")
+def _health_redis():
+    """Check Redis connectivity via PING."""
+    if not _HAS_REDIS:
+        return {"status": "DEGRADED", "details": {"message": "Redis not installed"}}
+    try:
+        redis_client.ping()
+        return {"status": "UP", "details": {"url": REDIS_URL}}
+    except Exception as exc:
+        return {"status": "DOWN", "details": {"error": str(exc)}}
+
+
+@register_health_check("disk")
+def _health_disk():
+    """Check available disk space."""
+    import shutil
+    total, used, free = shutil.disk_usage(".")
+    free_pct = free / total * 100 if total else 0
+    if free_pct < 5:
+        status = "DOWN"
+    elif free_pct < 20:
+        status = "DEGRADED"
+    else:
+        status = "UP"
+    return {
+        "status": status,
+        "details": {
+            "free_gb": round(free / 1024**3, 2),
+            "total_gb": round(total / 1024**3, 2),
+            "free_pct": round(free_pct, 1),
+        },
+    }
+
+
+# ─── Scheduled job: periodic cleanup every 30s ────────────────────────────────
+
+
+def _cleanup_expired_caches():
+    """Simulated cleanup job — deletes stale Redis cache keys."""
+    cleaned = 0
+    if _HAS_REDIS:
+        try:
+            for key in redis_client.scan_iter("temp:*"):
+                redis_client.delete(key)
+                cleaned += 1
+        except Exception:
+            pass
+    logger.info("Cleanup job ran — removed %d stale keys", cleaned)
+    return {"cleaned": cleaned}
+
+
+register_scheduled_job("cleanup", "every 30s", job_fn=_cleanup_expired_caches)
+
+_scheduler_timer = None
+
+
+def _run_cleanup_loop():
+    """Background thread that fires the cleanup job every 30 seconds."""
+    global _scheduler_timer
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    next_ts = (_dt.now(_tz.utc) + _td(seconds=30)).isoformat()
+    set_next_run("cleanup", next_ts)
+    try:
+        result = _cleanup_expired_caches()
+        record_job_run("cleanup", "success", details=result)
+    except Exception as exc:
+        record_job_run("cleanup", "failed", details=str(exc))
+    _scheduler_timer = threading.Timer(30.0, _run_cleanup_loop)
+    _scheduler_timer.daemon = True
+    _scheduler_timer.start()
+
+
+# ─── Error tracking ───────────────────────────────────────────────────────────
+
+# Install Flask error handler that captures exceptions into the ring buffer
+install_flask_error_handler(app)
+
+
+# ─── WebSocket (flask-sock) ───────────────────────────────────────────────────
+
+try:
+    from flask_sock import Sock  # type: ignore
+    _ws = Sock(app)
+    _HAS_FLASK_SOCK = True
+except ImportError:  # pragma: no cover - optional dependency
+    _ws = None
+    _HAS_FLASK_SOCK = False
+
+
+if _HAS_FLASK_SOCK:
+    register_ws_server("flask_sock", _ws)
+
+    @_ws.route("/ws")
+    def _ws_echo(ws):
+        """Simple WebSocket echo endpoint."""
+        while True:
+            data = ws.receive()
+            if data is None:
+                break
+            ws.send(f"echo: {data}")
+
+
 # ─── Request tracking middleware ─────────────────────────────────────────────
 
 
@@ -638,22 +823,56 @@ def error_endpoint():
     abort(500, "Intentional error for demo purposes")
 
 
+@app.route("/api/panic", methods=["GET"])
+def panic_endpoint():
+    """Trigger an unhandled ZeroDivisionError to test error tracking."""
+    logger.error("Panic endpoint called — triggering ZeroDivisionError")
+    # This will be captured by the error tracking inspector's Flask handler
+    result = 1 / 0  # noqa: B018  (intentional zero-division for demo)
+    return jsonify({"result": result})  # never reached
+
+
+@app.route("/api/auth-check", methods=["GET"])
+def auth_check():
+    """Return auth configuration info (protected by X-API-Key)."""
+    if not _check_api_key():
+        abort(401, "Missing or invalid X-API-Key header")
+    return jsonify({
+        "authenticated": True,
+        "scheme": "api_key",
+        "header": "X-API-Key",
+        "protected_paths": ["/api/orders"],
+        "active_sessions": len(ACTIVE_SESSIONS),
+    })
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 
 if __name__ == "__main__":
+    # Start the background cleanup scheduler
+    _scheduler_timer = threading.Timer(30.0, _run_cleanup_loop)
+    _scheduler_timer.daemon = True
+    _scheduler_timer.start()
+
     print(
         "\n"
-        "+----------------------------------------------+\n"
-        "|  Python Debug Agent — Flask Demo             |\n"
-        "|  Order Management API (Redis+SQLA+Celery)    |\n"
-        "|                                              |\n"
-        "|  API:          http://localhost:8000/api/orders\n"
-        "|  Health:       http://localhost:8000/api/health\n"
-        "|  Debug Agent:  http://localhost:8000/agent   |\n"
-        "+----------------------------------------------+\n"
-        f"  Redis:   {_HAS_REDIS}  ({REDIS_URL})\n"
-        f"  Celery:  {_HAS_CELERY}\n"
-        f"  SQLAlchemy: {_HAS_FLASK_SQLALCHEMY or _HAS_SQLALCHEMY}\n"
+        "+-------------------------------------------------+\n"
+        "|  Python Debug Agent v0.5.0 — Flask Demo          |\n"
+        "|  Order Management API (Redis+SQLA+Celery)        |\n"
+        "|                                                  |\n"
+        "|  API:          http://localhost:8000/api/orders  |\n"
+        "|  Health:       http://localhost:8000/api/health  |\n"
+        "|  Auth Check:   http://localhost:8000/api/auth-check|\n"
+        "|  Debug Agent:  http://localhost:8000/agent       |\n"
+        "+-------------------------------------------------+\n"
+        f"  Redis:        {_HAS_REDIS}  ({REDIS_URL})\n"
+        f"  Celery:       {_HAS_CELERY}\n"
+        f"  SQLAlchemy:   {_HAS_FLASK_SQLALCHEMY or _HAS_SQLALCHEMY}\n"
+        f"  WebSocket:    {_HAS_FLASK_SOCK}  (/ws echo)\n"
+        f"  Scheduler:    cleanup every 30s (background thread)\n"
+        f"  Error Track:  sys.excepthook + Flask handler installed\n"
+        f"  API Key:      {API_KEY[:8]}... (set X-API-Key header)\n"
     )
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    port = int(os.environ.get("PORT", "8000"))
+    app.run(host="0.0.0.0", port=port, debug=True)

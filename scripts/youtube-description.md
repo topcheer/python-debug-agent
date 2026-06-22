@@ -2,128 +2,55 @@
 
 ## Title
 
-Python Debug Agent — AI-Powered In-Process Diagnostics (51 Tools / 16 Inspectors)
+Python Debug Agent v0.5.0 — Security, Health, Scheduler, Errors, WebSocket (82 Tools)
 
 ## Description
 
-Chat with your LIVE Python application at runtime. The Python Debug Agent embeds directly into your Flask, FastAPI, or Django app and gives an AI assistant access to 51 diagnostic tools across 16 inspectors — tracemalloc, threads, GC, modules, database pools, Redis, Django models/URLs/migrations, Celery tasks/queues, Flask extensions/blueprints, Jinja2 templates, signal handlers, WSGI/ASGI servers, HTTP requests, and more.
+Embed an AI debugging assistant into your Flask, FastAPI, or Django app. 82 tools across 27 inspectors, all accessible through natural language chat at /agent.
 
-No external agents. No attach-to-process. No separate monitoring stack. Just one pip install, one line of code, and you're chatting with your running app.
+pip install debug-agent-py
 
-### What you'll see in this demo
+New in v0.5.0:
+- Security: auth configs, active sessions, CORS settings
+- Health: UP/DOWN/DEGRADED checks for DB, Redis, disk
+- Scheduler: APScheduler/Celery beat job listing and history
+- Error Tracking: ring buffer captures unhandled exceptions with tracebacks
+- WebSocket: active connections, stats, rooms
 
-**Section 1 — Python Memory & GC Deep Dive**
-tracemalloc top allocations, object counts by type, GC generation stats, reference cycles, and forcing garbage collection — all through natural language.
+Plus existing inspectors: Memory (tracemalloc), GC, threads, async tasks, database (SQLAlchemy), Redis, Celery, Flask extensions, Jinja2, Django, signals, HTTP tracking, logging tree, cache stats, outbound HTTP, file descriptors, metrics, warnings.
 
-**Section 2 — Threads + Async Tasks**
-Listing all threads with state, backtraces, pending asyncio tasks, event loop info, and scheduled callbacks.
+One pip install. One line of code. Chat with your running app.
 
-**Section 3 — Database + Redis**
-SQLAlchemy engine pool status, connection pool config, Redis server info, keyspace scan, and slow log.
-
-**Section 4 — Flask Extensions + Jinja2**
-Enumerating registered Flask extensions and blueprints, Jinja2 template loader paths, filters, and globals.
-
-**Section 5 — Django + Celery**
-Django models with table names, URL patterns, migration status, Celery registered tasks, active workers, and queue depth.
-
-**Section 6 — Signals + WSGI/ASGI**
-Python signal handlers, Django signal receivers, Gunicorn/uWSGI worker info, ASGI middleware chain.
-
-**Section 7 — Comprehensive Debugging**
-Multi-tool correlation: memory + threads + GC + Redis + Django + Celery + signals + requests — all in one analysis.
-
-### Quick Start
-
-```python
+Quick Start:
 from flask import Flask
 from debug_agent import setup_debug_agent
-
 app = Flask(__name__)
 setup_debug_agent(app)
-```
 
-Open `http://localhost:8000/agent` and start chatting with your app.
+Then open localhost:8000/agent
 
-### Features
+INSPECTOR COVERAGE (27 Inspectors / 82 Tools)
 
-- 51 diagnostic tools across 16 inspectors
-- Streaming AI responses with real-time tool call badges
-- LLM-based context compression for long conversations
-- Custom tool registration via @debug_tool decorator
-- Works with any OpenAI-compatible LLM endpoint
-- Zero external dependencies (no Datadog, no Grafana, no APM)
-- Dark-themed chat UI built-in (single HTML page, no frontend framework)
+Core: Memory(4), Threads(3), Async(2), Runtime(1), GC(3), System(3), Modules(3)
+Web: Framework(2), HTTP Tracker(4), Flask Ext(3), Jinja2(2), FastAPI(1)
+Data: Database(2), Redis(4), Django(4), Celery(3)
+Infra: Logging(4), Cache(2), HTTP Client(2), FD(3), Metrics(2), Warnings(1), Signals(2)
+NEW v0.5: Security(3), Health(2), Scheduler(3), Error Tracking(3), WebSocket(3)
 
-### Inspector Coverage
+GitHub: github.com/topcheer/python-debug-agent
 
-| Inspector | Tools | What it inspects |
-|-----------|-------|-----------------|
-| Memory | 5 | tracemalloc, object counts, GC stats, ref cycles |
-| Threads | 4 | Thread info, count, summary, stacks |
-| Database | 3 | SQLAlchemy engines, connections, pool config |
-| Modules | 3 | Loaded modules, count, packages |
-| Async Tasks | 3 | Pending tasks, event loop, callbacks |
-| Runtime | 4 | Memory, CPU, Python info, open FDs |
-| System | 3 | System info, env vars, disk |
-| Framework | 2 | Routes, middleware |
-| HTTP Tracker | 4 | Requests, slow, errors, stats |
-| Redis | 4 | Server info, keys, config, slowlog |
-| Django | 4 | Models, URLs, settings, migrations |
-| Celery | 3 | Tasks, workers, queues |
-| Flask Extensions | 3 | Extensions, blueprints, config |
-| Jinja2 | 2 | Templates, filters/tests/globals |
-| Signals | 2 | Python signal handlers, Django signals |
-| WSGI/ASGI | 2 | WSGI server info, ASGI apps |
-
-### GitHub
-
-github.com/topcheer/python-debug-agent
-
-### Tags
-
-#python #pythondebugging #AI #Diagnostics #Flask #Django #FastAPI #Redis #Celery #SQLAlchemy #Jinja2 #LLM #GLM #DeveloperTools #DevOps #ApplicationMonitoring #AIOps #Observability
+#python #flask #security #healthcheck #websocket #errorhandling #scheduler #AI #Diagnostics #FastAPI #Django #Redis #Celery #SQLAlchemy #DeveloperTools #DevOps
 
 ## Chapters
 
 00:00 Introduction
-00:26 Python Memory & GC — tracemalloc, Object Counts
-02:23 Threads + Async Tasks
-04:20 Database + Redis
-06:17 Flask Extensions + Jinja2
-08:14 Django + Celery
-10:11 Signals + System
-12:08 Comprehensive Multi-Tool Debugging
-
----
-
-## Thumbnail Text (for image)
-
-Python Debug Agent
-Chat with your LIVE app
-51 tools / 16 inspectors
-
----
-
-## Playlist
-
-AI Debug Agents Collection
-(Spring / .NET / Go / Node.js / Python / Ruby)
-
----
-
-## Category
-
-Science & Technology
-
-## Language
-
-English
-
-## Visibility
-
-Public
-
-## Made for Kids
-
-No
+00:24 Memory (tracemalloc) + GC Stats
+03:03 Threads + Async Tasks + Signals
+05:43 Database (SQLAlchemy) + Redis
+08:22 Flask Routes + Jinja2 + Logging
+11:02 HTTP Requests + Cache + Metrics
+13:42 Security — Auth, Sessions, CORS
+16:21 Health Checks + Scheduler
+19:01 Error Tracking + Warnings
+21:40 Outbound HTTP + FD + FastAPI
+24:20 Comprehensive Multi-Tool Debugging
