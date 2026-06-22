@@ -1,10 +1,26 @@
 # Python Debug Agent
 
 [![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
-![Tools](https://img.shields.io/badge/tools-68-blue)
-![Inspectors](https://img.shields.io/badge/inspectors-24-green)
+![Tools](https://img.shields.io/badge/tools-82-blue)
+![Inspectors](https://img.shields.io/badge/inspectors-27-green)
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
+![PyPI](https://img.shields.io/badge/PyPI-debug--agent--py-3776AB)
 
 An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **68 diagnostic tools across 24 inspectors**.
+
+## Version Support
+
+| Python Version | Status |
+|----------------|--------|
+| 3.8            | Not supported |
+| 3.9            | Minimum supported |
+| 3.10           | Supported |
+| 3.11           | Supported |
+| 3.12           | Supported |
+| 3.13           | Supported |
+| 3.14           | Tested |
+
+> Uses `from __future__ import annotations` so `X | Y` union types work on Python 3.9+. Optional dependencies (Flask, SQLAlchemy, Redis, Celery) are not required at install time.
 
 ## Quick Start
 
