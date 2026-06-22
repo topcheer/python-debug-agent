@@ -38,9 +38,9 @@ jobs:
       - name: Verify tool registry
         run: |
           python -c "
-          from debug_agent.tool_registry import global_registry
-          global_registry.discover_tools()
-          schemas = global_registry.all_schemas()
+          from debug_agent import inspectors  # triggers tool registration
+          from debug_agent.tool_registry import registry
+          schemas = registry.all_schemas()
           assert len(schemas) >= 25, f'Expected 25+ tools, got {len(schemas)}'
           print(f'OK: {len(schemas)} tools registered')
           "
