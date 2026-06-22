@@ -1,10 +1,10 @@
 # Python Debug Agent
 
 [![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
-![Tools](https://img.shields.io/badge/tools-51-blue)
-![Inspectors](https://img.shields.io/badge/inspectors-16-green)
+![Tools](https://img.shields.io/badge/tools-68-blue)
+![Inspectors](https://img.shields.io/badge/inspectors-24-green)
 
-An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **51 diagnostic tools across 16 inspectors**.
+An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **68 diagnostic tools across 24 inspectors**.
 
 ## Quick Start
 
@@ -48,11 +48,11 @@ http://localhost:8000/agent
 - **Context compression** — automatically summarizes old conversation when token limit is approached
 - **Dark-themed chat UI** with full markdown rendering (tables, code blocks, lists)
 - **Max tool rounds** (25) with forced final summary when limit is reached
-- **51 diagnostic tools** across **16 inspectors**
+- **68 diagnostic tools** across **24 inspectors**
 - Works with Flask, FastAPI, and Django
 - Zero external dependencies (no Datadog, no Grafana, no APM)
 
-## Inspectors & Tools (51)
+## Inspectors & Tools (68)
 
 ### Memory Inspector
 | Tool | Description |
@@ -168,6 +168,50 @@ http://localhost:8000/agent
 |------|-------------|
 | `get_wsgi_info` | WSGI server details (Gunicorn/uWSGI workers, config) |
 | `get_asgi_apps` | List ASGI application scope and middleware chain |
+
+### Logging Inspector
+| Tool | Description |
+|------|-------------|
+| `get_logging_tree` | Python logging module logger hierarchy and levels |
+| `get_recent_logs` | Recent log entries from the built-in ring buffer |
+| `get_logging_config` | Current logging configuration (handlers, formatters, levels) |
+| `set_log_level` | Dynamically set the log level for a named logger |
+
+### Cache Inspector
+| Tool | Description |
+|------|-------------|
+| `get_cache_info` | Stats for registered caches (hit rate, miss count, key count) |
+| `get_cache_keys` | List keys from a registered cache with optional prefix filter |
+| `clear_cache` | Clear all entries from a registered cache |
+
+### Outbound HTTP Inspector
+| Tool | Description |
+|------|-------------|
+| `get_http_pool_stats` | HTTP client connection pool stats (connections, keepalive, timeouts) |
+| `get_outbound_summary` | Aggregated outbound HTTP call stats (total, avg latency, error rate) |
+
+### File Descriptor Inspector
+| Tool | Description |
+|------|-------------|
+| `get_fd_count` | Current number of open file descriptors |
+| `get_fd_limit` | File descriptor soft and hard limits (RLIMIT_NOFILE) |
+| `get_fd_list` | List open file descriptors with type and details |
+
+### Metrics Inspector
+| Tool | Description |
+|------|-------------|
+| `get_registered_metrics` | List all registered metrics from prometheus_client |
+| `get_metric_value` | Get current value of a specific metric by name |
+
+### FastAPI Inspector
+| Tool | Description |
+|------|-------------|
+| `get_fastapi_openapi` | List FastAPI routes, schemas, and OpenAPI spec details |
+
+### Warnings Inspector
+| Tool | Description |
+|------|-------------|
+| `get_warnings` | List captured Python warnings with category, message, and location |
 
 ## Custom Tools
 
