@@ -2,8 +2,10 @@
 
 from debug_agent.inspectors import (  # noqa: F401
     async_tasks,
+    build_info_inspector,
     cache_inspector,
     celery,
+    cpu_profile_inspector,
     config_inspector,
     database,
     django,
@@ -18,6 +20,7 @@ from debug_agent.inspectors import (  # noqa: F401
     http_client_inspector,
     http_tracker,
     jinja2,
+    leak_detector_inspector,
     locks_inspector,
     logging_inspector,
     memory,
@@ -29,7 +32,9 @@ from debug_agent.inspectors import (  # noqa: F401
     runtime,
     scheduler_inspector,
     security_inspector,
+    service_registry_inspector,
     signals,
+    snapshot_inspector,
     system,
     threads,
     warnings_inspector,

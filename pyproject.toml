@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "debug-agent-py"
-version = "0.5.1"
+version = "0.7.0"
 description = "AI-powered runtime debugging agent for Python web applications"
 readme = "README.md"
 license = {text = "MIT"}

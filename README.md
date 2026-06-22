@@ -1,12 +1,12 @@
 # Python Debug Agent
 
 [![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
-![Tools](https://img.shields.io/badge/tools-99-blue)
-![Inspectors](https://img.shields.io/badge/inspectors-33-green)
+![Tools](https://img.shields.io/badge/tools-113-blue)
+![Inspectors](https://img.shields.io/badge/inspectors-38-green)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
 ![PyPI](https://img.shields.io/badge/PyPI-debug--agent--py-3776AB)
 
-An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **99 diagnostic tools across 33 inspectors**.
+An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **113 diagnostic tools across 38 inspectors**.
 
 ## Version Support
 
@@ -64,11 +64,11 @@ http://localhost:8000/agent
 - **Context compression** — automatically summarizes old conversation when token limit is approached
 - **Dark-themed chat UI** with full markdown rendering (tables, code blocks, lists)
 - **Max tool rounds** (25) with forced final summary when limit is reached
-- **99 diagnostic tools** across **33 inspectors**
+- **113 diagnostic tools** across **38 inspectors**
 - Works with Flask, FastAPI, and Django
 - Zero external dependencies (no Datadog, no Grafana, no APM)
 
-## Inspectors & Tools (99)
+## Inspectors & Tools (113)
 
 ### Memory Inspector
 | Tool | Description |
@@ -269,6 +269,40 @@ http://localhost:8000/agent
 | `get_pool_details` | Detailed DB pool stats (pool size, checked-in, checked-out, overflow) |
 | `detect_pool_leaks` | Heuristic leak detection (growing pool, high wait ratio, saturation) |
 | `get_pool_wait_stats` | Connection acquire wait stats (avg, P95, max wait, timeout count) |
+
+### CPU Profiler Inspector (v0.7.0)
+| Tool | Description |
+|------|-------------|
+| `start_cpu_profile` | Start a CPU profiling session (cProfile/yappi) |
+| `stop_cpu_profile` | Stop CPU profiling and return collected profile data |
+| `get_top_functions` | Get top CPU-consuming functions from the current profile |
+
+### Memory Leak Detector Inspector (v0.7.0)
+| Tool | Description |
+|------|-------------|
+| `take_heap_snapshot` | Capture a heap snapshot for leak analysis (tracemalloc) |
+| `compare_heap_snapshots` | Compare two heap snapshots to identify object growth |
+| `get_leak_candidates` | Identify objects likely to be memory leaks |
+
+### Deployment/Build Info Inspector (v0.7.0)
+| Tool | Description |
+|------|-------------|
+| `get_build_info` | Build version, commit hash, and package metadata |
+| `get_deployment_info` | Deployment environment, container, and orchestration metadata |
+| `get_runtime_version` | Python interpreter version and implementation details |
+
+### Snapshot & Diff Inspector (v0.7.0)
+| Tool | Description |
+|------|-------------|
+| `take_snapshot` | Capture a runtime state snapshot |
+| `compare_snapshots` | Compare two snapshots to identify state changes |
+| `list_snapshots` | List all saved snapshots with timestamps |
+
+### Service Registry Inspector (v0.7.0)
+| Tool | Description |
+|------|-------------|
+| `get_registered_services` | List all registered application services |
+| `get_service_dependencies` | Map service-to-service dependency graph |
 
 ## Custom Tools
 
