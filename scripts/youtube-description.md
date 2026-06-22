@@ -78,7 +78,7 @@ Open `http://localhost:8000/agent` and start chatting with your app.
 
 ### GitHub
 
-https://github.com/topcheer/python-debug-agent
+github.com/topcheer/python-debug-agent
 
 ### Tags
 
