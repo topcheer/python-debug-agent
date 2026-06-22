@@ -1,6 +1,10 @@
 # Python Debug Agent
 
-An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, routes, HTTP requests, and more.
+[![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
+![Tools](https://img.shields.io/badge/tools-51-blue)
+![Inspectors](https://img.shields.io/badge/inspectors-16-green)
+
+An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **51 diagnostic tools across 16 inspectors**.
 
 ## Quick Start
 
@@ -44,10 +48,11 @@ http://localhost:8000/agent
 - **Context compression** — automatically summarizes old conversation when token limit is approached
 - **Dark-themed chat UI** with full markdown rendering (tables, code blocks, lists)
 - **Max tool rounds** (25) with forced final summary when limit is reached
-- **34 diagnostic tools** across 10 inspectors
+- **51 diagnostic tools** across **16 inspectors**
 - Works with Flask, FastAPI, and Django
+- Zero external dependencies (no Datadog, no Grafana, no APM)
 
-## Inspectors & Tools (34)
+## Inspectors & Tools (51)
 
 ### Memory Inspector
 | Tool | Description |
@@ -64,12 +69,14 @@ http://localhost:8000/agent
 | `get_thread_info` | List all threads with name, daemon, alive status |
 | `get_thread_count` | Active thread count |
 | `get_thread_summary` | Thread state distribution |
+| `get_thread_stacks` | Current frame/stack for all threads |
 
 ### Database Inspector
 | Tool | Description |
 |------|-------------|
 | `get_sqlalchemy_engines` | Find SQLAlchemy engines and pool status |
 | `get_db_connections` | Inspect database connection pools |
+| `get_db_pool_config` | Pool configuration: size, timeout, recycle settings |
 
 ### Modules Inspector
 | Tool | Description |
@@ -83,6 +90,7 @@ http://localhost:8000/agent
 |------|-------------|
 | `get_async_tasks` | List pending asyncio tasks |
 | `get_event_loop_info` | Event loop details: type, running state |
+| `get_pending_callbacks` | List scheduled callbacks on the event loop |
 
 ### Runtime Inspector
 | Tool | Description |
@@ -90,13 +98,14 @@ http://localhost:8000/agent
 | `get_memory_info` | Process memory info (RSS, VMS, shared) |
 | `get_cpu_usage` | CPU usage percentage |
 | `get_python_info` | Python version, implementation, executable path |
+| `get_open_fds` | Open file descriptor count and limits |
 
 ### System Inspector
 | Tool | Description |
 |------|-------------|
 | `get_system_info` | Hostname, platform, CPU cores, disk |
 | `get_environment_variables` | Environment variables (masked secrets) |
-| `get_disk_usage` | Disk usage for working directory |
+| `get_disk_usage` | Disk usage for the working directory |
 
 ### Framework Inspector
 | Tool | Description |
@@ -111,6 +120,54 @@ http://localhost:8000/agent
 | `get_slow_requests` | Slowest requests by duration |
 | `get_error_requests` | Error requests (4xx/5xx) |
 | `get_request_stats` | P50/P95/P99 latency, error rate |
+
+### Redis Inspector
+| Tool | Description |
+|------|-------------|
+| `get_redis_info` | Redis server info: memory, clients, persistence |
+| `get_redis_keys` | Scan Redis keyspace with pattern matching |
+| `get_redis_config` | Redis runtime configuration (CONFIG GET) |
+| `get_redis_slowlog` | Redis slow query log entries |
+
+### Django Inspector
+| Tool | Description |
+|------|-------------|
+| `get_django_models` | List Django models with app label, table name, field count |
+| `get_django_urls` | List all URL patterns with view names and namespaces |
+| `get_django_settings` | Key Django settings (DBs, INSTALLED_APPS, MIDDLEWARE) |
+| `get_django_migrations` | Migration status per app: applied vs pending |
+
+### Celery Inspector
+| Tool | Description |
+|------|-------------|
+| `get_celery_tasks` | List registered Celery tasks with routing info |
+| `get_celery_workers` | Active Celery workers with pool and concurrency |
+| `get_celery_queues` | Queue depth and message stats per queue |
+
+### Flask Extensions Inspector
+| Tool | Description |
+|------|-------------|
+| `get_flask_extensions` | List registered Flask extensions and their bindings |
+| `get_flask_blueprints` | List Flask blueprints with URL prefixes and routes |
+| `get_flask_config` | Flask configuration object values (secrets masked) |
+
+### Jinja2 Inspector
+| Tool | Description |
+|------|-------------|
+| `get_jinja_templates` | List loaded Jinja2 templates with loader paths |
+| `get_jinja_filters` | List registered Jinja2 filters, tests, and globals |
+
+### Signals Inspector
+| Tool | Description |
+|------|-------------|
+| `get_signal_handlers` | List Python signal handlers registered via signal module |
+| `get_django_signals` | List Django signal receivers connected to senders |
+
+### WSGI/ASGI Inspector
+| Tool | Description |
+|------|-------------|
+| `get_wsgi_info` | WSGI server details (Gunicorn/uWSGI workers, config) |
+| `get_asgi_apps` | List ASGI application scope and middleware chain |
 
 ## Custom Tools
 
@@ -133,6 +190,26 @@ def check_redis():
 | `LLM_CONTEXT_WINDOW_TOKENS` | `100000` | Context window size |
 
 ## Run the Demo
+
+The demo uses **Flask** + **redis-py** + **SQLAlchemy** + **Celery**. Start Redis with Docker Compose first:
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+```
+
+```bash
+docker compose up -d
+```
+
+### Start the app
 
 ```bash
 export LLM_API_KEY=your-key

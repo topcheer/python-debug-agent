@@ -33,6 +33,10 @@ dependencies = [
 fastapi = ["fastapi>=0.100", "starlette>=0.27", "uvicorn>=0.23"]
 flask = ["flask>=2.3"]
 django = ["django>=4.2"]
+sqlalchemy = ["sqlalchemy>=2.0", "flask-sqlalchemy>=3.0"]
+redis = ["redis>=5.0"]
+celery = ["celery>=5.3"]
+demo = ["flask>=2.3", "sqlalchemy>=2.0", "flask-sqlalchemy>=3.0", "redis>=5.0", "celery>=5.3", "gunicorn>=21.2"]
 dev = ["fastapi", "uvicorn", "flask", "pytest"]
 
 [project.urls]

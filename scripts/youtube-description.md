@@ -2,77 +2,79 @@
 
 ## Title
 
-Python Debug Agent — AI-Powered In-Process Diagnostics for Flask/FastAPI (10 Inspectors / 30+ Tools)
+Python Debug Agent — AI-Powered In-Process Diagnostics (51 Tools / 16 Inspectors)
 
 ## Description
 
-Chat with your LIVE Python application at runtime. The Python Debug Agent embeds directly into your Flask or FastAPI app and gives an AI assistant access to 30+ diagnostic tools across 10 inspectors — memory profiler, threads, modules, database, async tasks, GC, runtime, system, framework routes, and HTTP request tracking.
+Chat with your LIVE Python application at runtime. The Python Debug Agent embeds directly into your Flask, FastAPI, or Django app and gives an AI assistant access to 51 diagnostic tools across 16 inspectors — tracemalloc, threads, GC, modules, database pools, Redis, Django models/URLs/migrations, Celery tasks/queues, Flask extensions/blueprints, Jinja2 templates, signal handlers, WSGI/ASGI servers, HTTP requests, and more.
 
 No external agents. No attach-to-process. No separate monitoring stack. Just one pip install, one line of code, and you're chatting with your running app.
 
 ### What you'll see in this demo
 
-**Section 1 — Python Runtime + Memory + GC**
-Python version, memory summary, GC statistics, tracemalloc allocations, process info, disk usage, and forcing a garbage collection — all through natural language.
+**Section 1 — Python Memory & GC Deep Dive**
+tracemalloc top allocations, object counts by type, GC generation stats, reference cycles, and forcing garbage collection — all through natural language.
 
 **Section 2 — Threads + Async Tasks**
-Enumerating all threads with daemon/alive status, per-thread tracebacks, asyncio event loop detection, and pending task listing.
+Listing all threads with state, backtraces, pending asyncio tasks, event loop info, and scheduled callbacks.
 
-**Section 3 — Modules + Dependencies**
-Loaded module inventory with versions, import statistics (largest modules by file size), module detail inspection, installed package listing, and Python path.
+**Section 3 — Database + Redis**
+SQLAlchemy engine pool status, connection pool config, Redis server info, keyspace scan, and slow log.
 
-**Section 4 — Framework Routes + HTTP Request Tracking**
-Discovering all Flask routes, analyzing recent HTTP traffic with P50/P95/P99 latency, identifying slow and error requests.
+**Section 4 — Flask Extensions + Jinja2**
+Enumerating registered Flask extensions and blueprints, Jinja2 template loader paths, filters, and globals.
 
-**Section 5 — Database + Environment**
-SQLAlchemy engine detection, connection pool inspection (checked-in/out/overflow), and environment variable listing with secret masking.
+**Section 5 — Django + Celery**
+Django models with table names, URL patterns, migration status, Celery registered tasks, active workers, and queue depth.
 
-**Section 6 — Object Analysis + System**
-Live object counts by type, reference cycle detection, GC generation details, and system info (OS, CPU, load average).
+**Section 6 — Signals + WSGI/ASGI**
+Python signal handlers, Django signal receivers, Gunicorn/uWSGI worker info, ASGI middleware chain.
 
 **Section 7 — Comprehensive Debugging**
-Multi-tool correlation: runtime + memory + GC + threads + HTTP requests + modules + objects — all in one analysis.
+Multi-tool correlation: memory + threads + GC + Redis + Django + Celery + signals + requests — all in one analysis.
 
 ### Quick Start
 
 ```python
-# app.py
 from flask import Flask
-from debug_agent.middleware import create_flask_blueprint
+from debug_agent import setup_debug_agent
 
 app = Flask(__name__)
-app.register_blueprint(create_flask_blueprint())  # one line!
-
-app.run(port=8000)
+setup_debug_agent(app)
 ```
 
 Open `http://localhost:8000/agent` and start chatting with your app.
 
 ### Features
 
-- 30+ diagnostic tools across 10 inspectors
+- 51 diagnostic tools across 16 inspectors
 - Streaming AI responses with real-time tool call badges
-- LLM-based context compression for long conversations (75% threshold)
+- LLM-based context compression for long conversations
 - Custom tool registration via @debug_tool decorator
-- Works with any OpenAI-compatible LLM endpoint (Z.ai GLM-5.2, OpenAI, etc.)
-- Zero external dependencies (no Datadog, no AppDynamics, no Grafana)
+- Works with any OpenAI-compatible LLM endpoint
+- Zero external dependencies (no Datadog, no Grafana, no APM)
 - Dark-themed chat UI built-in (single HTML page, no frontend framework)
-- SSE streaming with tool badges and context compression notices
 
 ### Inspector Coverage
 
 | Inspector | Tools | What it inspects |
 |-----------|-------|-----------------|
-| Runtime | 7 | Python version, GC, memory, threads, tracemalloc |
-| System | 4 | Process info, system info, disk usage, Python path |
-| Memory Profiler | 4 | tracemalloc stats, object counts, GC stats, ref cycles |
-| Threads | 3 | Thread info, count, per-thread tracebacks |
-| Modules | 3 | Loaded modules, import stats, module detail |
-| Database | 2 | SQLAlchemy engines, connection pools |
-| Async Tasks | 2 | Pending asyncio tasks, event loop info |
-| Framework | 4 | Routes, middleware, installed packages, env vars |
-| HTTP Requests | 4 | Recent requests, slow requests, errors, stats |
-| HTTP Tracker | 4 | Request ring buffer, latency percentiles, error rate |
+| Memory | 5 | tracemalloc, object counts, GC stats, ref cycles |
+| Threads | 4 | Thread info, count, summary, stacks |
+| Database | 3 | SQLAlchemy engines, connections, pool config |
+| Modules | 3 | Loaded modules, count, packages |
+| Async Tasks | 3 | Pending tasks, event loop, callbacks |
+| Runtime | 4 | Memory, CPU, Python info, open FDs |
+| System | 3 | System info, env vars, disk |
+| Framework | 2 | Routes, middleware |
+| HTTP Tracker | 4 | Requests, slow, errors, stats |
+| Redis | 4 | Server info, keys, config, slowlog |
+| Django | 4 | Models, URLs, settings, migrations |
+| Celery | 3 | Tasks, workers, queues |
+| Flask Extensions | 3 | Extensions, blueprints, config |
+| Jinja2 | 2 | Templates, filters/tests/globals |
+| Signals | 2 | Python signal handlers, Django signals |
+| WSGI/ASGI | 2 | WSGI server info, ASGI apps |
 
 ### GitHub
 
@@ -80,17 +82,17 @@ https://github.com/topcheer/python-debug-agent
 
 ### Tags
 
-#python #flask #fastapi #AI #Debugging #Diagnostics #Python #LLM #GLM #DeveloperTools #DevOps #ApplicationMonitoring #AIOps #Observability #PythonDebugging #Flask #FastAPI #OpenSource
+#python #pythondebugging #AI #Diagnostics #Flask #Django #FastAPI #Redis #Celery #SQLAlchemy #Jinja2 #LLM #GLM #DeveloperTools #DevOps #ApplicationMonitoring #AIOps #Observability
 
 ## Chapters
 
 00:00 Introduction
-01:15 Python Runtime — Memory, GC, Tracemalloc
+01:15 Python Memory & GC — tracemalloc, Object Counts
 03:20 Threads + Async Tasks
-05:30 Modules + Dependencies
-07:10 Framework Routes + HTTP Request Tracking
-09:15 Database + Environment
-10:50 Object Analysis + System Info
+05:30 Database + Redis
+07:10 Flask Extensions + Jinja2
+09:15 Django + Celery
+10:50 Signals + WSGI/ASGI
 12:20 Comprehensive Multi-Tool Debugging
 14:00 Summary + Quick Start Guide
 
@@ -100,7 +102,7 @@ https://github.com/topcheer/python-debug-agent
 
 Python Debug Agent
 Chat with your LIVE app
-30+ tools / 10 inspectors
+51 tools / 16 inspectors
 
 ---
 
