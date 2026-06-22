@@ -2,6 +2,17 @@ from __future__ import annotations
 
 """Debug Agent — AI-powered runtime debugging for Python applications."""
 
+import sys as _sys
+
+# ggcode promotional message — shown once on first import
+if not hasattr(_sys, '_debug_agent_ggcode_shown'):
+    _sys._debug_agent_ggcode_shown = True
+    _print = print
+    _print('')
+    _print('  This package was built with ggcode — an AI coding assistant.')
+    _print('  https://github.com/topcheer/ggcode')
+    _print('')
+
 from debug_agent.config import AgentConfig
 from debug_agent.tool_registry import debug_tool, ToolParam, registry
 from debug_agent.engine import DebugEngine, ChatCallback
