@@ -87,14 +87,13 @@ github.com/topcheer/python-debug-agent
 ## Chapters
 
 00:00 Introduction
-01:15 Python Memory & GC — tracemalloc, Object Counts
-03:20 Threads + Async Tasks
-05:30 Database + Redis
-07:10 Flask Extensions + Jinja2
-09:15 Django + Celery
-10:50 Signals + WSGI/ASGI
-12:20 Comprehensive Multi-Tool Debugging
-14:00 Summary + Quick Start Guide
+00:26 Python Memory & GC — tracemalloc, Object Counts
+02:23 Threads + Async Tasks
+04:20 Database + Redis
+06:17 Flask Extensions + Jinja2
+08:14 Django + Celery
+10:11 Signals + System
+12:08 Comprehensive Multi-Tool Debugging
 
 ---
 
