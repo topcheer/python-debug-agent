@@ -4,20 +4,41 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "debug-agent"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-powered runtime debugging agent for Python web applications"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
+authors = [
+    {name = "ggcode", email = "noreply@ggcode.dev"}
+]
+keywords = ["debug", "debugging", "ai", "llm", "runtime", "diagnostics", "flask", "fastapi", "django", "agent", "observability"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Debuggers",
+]
 dependencies = [
     "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
-fastapi = ["fastapi>=0.100", "starlette>=0.27"]
+fastapi = ["fastapi>=0.100", "starlette>=0.27", "uvicorn>=0.23"]
 flask = ["flask>=2.3"]
 django = ["django>=4.2"]
-dev = ["fastapi", "uvicorn", "pytest"]
+dev = ["fastapi", "uvicorn", "flask", "pytest"]
+
+[project.urls]
+Homepage = "https://github.com/topcheer/python-debug-agent"
+Repository = "https://github.com/topcheer/python-debug-agent"
+Issues = "https://github.com/topcheer/python-debug-agent/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

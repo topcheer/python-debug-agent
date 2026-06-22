@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────────
+# pypi-publish — Push a tag `v1.2.3` to publish to PyPI
+#
+# Usage:
+#   git tag v0.2.0
+#   git push origin v0.2.0
+#
+# Uses PyPI Trusted Publishing (OIDC) — no API token needed.
+# Configure at: https://pypi.org/manage/project/debug-agent/settings/publishing/
+#   GitHub repository: topcheer/python-debug-agent
+#   Workflow: pypi-publish.yml
+#   Environment: pypi
+# ─────────────────────────────────────────────────────────────────
+name: pypi
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: publish-pypi-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Sync version from tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "Tag: $TAG  Version: $VERSION"
+          # Update version in pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          grep "^version" pyproject.toml
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build --sdist --wheel
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # Trusted publishing — no password needed if configured on PyPI
+        # If trusted publishing is not set up, add PYPI_API_TOKEN secret
+        # with:
+        #   password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            ### PyPI
+            ```
+            pip install debug-agent==${{ github.ref_name }}
+            ```
+
+            ### Quick Start
+            ```python
+            from debug_agent import setup_debug_agent
+            setup_debug_agent(app)
+            ```

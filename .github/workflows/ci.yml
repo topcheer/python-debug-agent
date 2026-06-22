@@ -1,0 +1,49 @@
+# ─────────────────────────────────────────────────────────────────
+# CI — lint and test on every push/PR
+# ─────────────────────────────────────────────────────────────────
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: pip install -e ".[dev]"
+
+      - name: Compile check
+        run: |
+          python -m py_compile src/debug_agent/__init__.py
+          python -m py_compile src/debug_agent/engine.py
+          python -m py_compile src/debug_agent/llm_client.py
+          python -m py_compile src/debug_agent/middleware.py
+          python -m py_compile src/debug_agent/tool_registry.py
+          python -m py_compile src/debug_agent/config.py
+
+      - name: Verify tool registry
+        run: |
+          python -c "
+          from debug_agent.tool_registry import global_registry
+          global_registry.discover_tools()
+          schemas = global_registry.all_schemas()
+          assert len(schemas) >= 25, f'Expected 25+ tools, got {len(schemas)}'
+          print(f'OK: {len(schemas)} tools registered')
+          "
+
+      - name: Build check
+        run: pip install build && python -m build --sdist --wheel
