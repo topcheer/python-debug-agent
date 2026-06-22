@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Debug Agent — AI-powered runtime debugging for Python applications."""
 
 from debug_agent.config import AgentConfig
