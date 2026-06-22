@@ -356,6 +356,14 @@ from debug_agent.inspectors.error_tracking import (  # noqa: E402
     capture_error,
 )
 from debug_agent.inspectors.websocket_inspector import register_ws_server  # noqa: E402
+
+# v0.6.0 inspectors
+from debug_agent.inspectors.locks_inspector import register_lock  # noqa: E402
+from debug_agent.inspectors.config_inspector import register_config  # noqa: E402
+from debug_agent.inspectors.feature_flag_inspector import register_feature_flag  # noqa: E402
+from debug_agent.inspectors.migration_inspector import register_migration_provider  # noqa: E402
+from debug_agent.inspectors.pool_inspector import register_pool  # noqa: E402
+
 from functools import wraps  # noqa: E402
 import threading  # noqa: E402
 
@@ -401,6 +409,71 @@ def _enforce_api_key():
         if not _check_api_key():
             abort(401, "Missing or invalid X-API-Key header. Set the X-API-Key header.")
 
+
+# ─── v0.6.0 Inspector integrations ───────────────────────────────────────────
+
+# Lock: protect the order counter
+_order_lock = threading.Lock()
+register_lock("order_counter", _order_lock)
+
+# Config: register Flask config values (passwords are auto-masked)
+register_config(
+    "flask",
+    {
+        "DEBUG": app.config.get("DEBUG", True),
+        "TESTING": app.config.get("TESTING", False),
+        "SQLALCHEMY_DATABASE_URI": DATABASE_URL,
+        "REDIS_URL": REDIS_URL,
+    },
+    sources={
+        "SQLALCHEMY_DATABASE_URI": "env" if os.environ.get("DATABASE_URL") else "default",
+        "REDIS_URL": "env" if os.environ.get("REDIS_URL") else "default",
+        "DEBUG": "default",
+        "TESTING": "default",
+    },
+)
+
+# Feature flags
+register_feature_flag("new_ui", enabled=True)
+register_feature_flag("experimental_cache", enabled=False)
+register_feature_flag("ai_search", enabled=True, variant="v2")
+
+# Migration: simple schema-version tracking
+_SCHEMA_VERSION = 3
+_APPLIED_MIGRATIONS = [
+    {"version": "0001", "name": "initial", "applied_at": "2024-01-10T09:00:00Z"},
+    {"version": "0002", "name": "add_quantity_index", "applied_at": "2024-01-12T14:30:00Z"},
+    {"version": "0003", "name": "add_status_column", "applied_at": "2024-01-15T10:00:00Z"},
+]
+_ALL_MIGRATIONS = _APPLIED_MIGRATIONS + [
+    {"version": "0004", "name": "add_soft_delete", "applied_at": None},
+]
+
+
+def _migration_info():
+    applied_versions = {m["version"] for m in _APPLIED_MIGRATIONS}
+    pending = [m for m in _ALL_MIGRATIONS if m["version"] not in applied_versions]
+    return {
+        "source": "custom",
+        "current_version": _APPLIED_MIGRATIONS[-1]["version"],
+        "pending": pending,
+        "history": list(_APPLIED_MIGRATIONS),
+    }
+
+
+register_migration_provider(_migration_info)
+
+# Pool: register the SQLAlchemy engine pool
+if _HAS_FLASK_SQLALCHEMY:
+    try:
+        register_pool("flask_sqlalchemy", db.engine.pool)
+    except Exception:
+        pass
+elif _HAS_SQLALCHEMY:
+    try:
+        register_pool("sqlalchemy_default", engine.pool)
+    except Exception:
+        pass
 
 # ─── Health checks ────────────────────────────────────────────────────────────
 
@@ -692,19 +765,7 @@ def _query_order(oid: int) -> dict | None:
 def _create_order(customer: str, item: str, quantity: int, price: float) -> dict:
     total = round(quantity * price, 2)
     if _HAS_FLASK_SQLALCHEMY:
-        order = Order(
-            customer=customer,
-            item=item,
-            quantity=quantity,
-            price=price,
-            total=total,
-            status="pending",
-        )
-        db.session.add(order)
-        db.session.commit()
-        return _serialize(order)
-    if _HAS_SQLALCHEMY:
-        with SessionLocal() as session:
+        with _order_lock:
             order = Order(
                 customer=customer,
                 item=item,
@@ -713,10 +774,24 @@ def _create_order(customer: str, item: str, quantity: int, price: float) -> dict
                 total=total,
                 status="pending",
             )
-            session.add(order)
-            session.commit()
-            session.refresh(order)
+            db.session.add(order)
+            db.session.commit()
             return _serialize(order)
+    if _HAS_SQLALCHEMY:
+        with _order_lock:
+            with SessionLocal() as session:
+                order = Order(
+                    customer=customer,
+                    item=item,
+                    quantity=quantity,
+                    price=price,
+                    total=total,
+                    status="pending",
+                )
+                session.add(order)
+                session.commit()
+                session.refresh(order)
+                return _serialize(order)
     return {}
 
 
@@ -858,7 +933,7 @@ if __name__ == "__main__":
     print(
         "\n"
         "+-------------------------------------------------+\n"
-        "|  Python Debug Agent v0.5.0 — Flask Demo          |\n"
+        "|  Python Debug Agent v0.6.0 — Flask Demo          |\n"
         "|  Order Management API (Redis+SQLA+Celery)        |\n"
         "|                                                  |\n"
         "|  API:          http://localhost:8000/api/orders  |\n"
@@ -872,6 +947,9 @@ if __name__ == "__main__":
         f"  WebSocket:    {_HAS_FLASK_SOCK}  (/ws echo)\n"
         f"  Scheduler:    cleanup every 30s (background thread)\n"
         f"  Error Track:  sys.excepthook + Flask handler installed\n"
+        f"  Feature Flags: new_ui=on, experimental_cache=off, ai_search=on\n"
+        f"  Migrations:   schema v{_SCHEMA_VERSION} (1 pending)\n"
+        f"  Locks:        order_counter (threading.Lock)\n"
         f"  API Key:      {API_KEY[:8]}... (set X-API-Key header)\n"
     )
     port = int(os.environ.get("PORT", "8000"))

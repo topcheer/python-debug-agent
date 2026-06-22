@@ -1,12 +1,12 @@
 # Python Debug Agent
 
 [![debug-agent-py](https://img.shields.io/pypi/v/debug-agent-py.svg)](https://pypi.org/project/debug-agent-py/)
-![Tools](https://img.shields.io/badge/tools-82-blue)
-![Inspectors](https://img.shields.io/badge/inspectors-27-green)
+![Tools](https://img.shields.io/badge/tools-99-blue)
+![Inspectors](https://img.shields.io/badge/inspectors-33-green)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
 ![PyPI](https://img.shields.io/badge/PyPI-debug--agent--py-3776AB)
 
-An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **68 diagnostic tools across 24 inspectors**.
+An AI-powered runtime debugging agent that embeds directly into your Python web application. Add one dependency, configure an LLM key, and chat with your live app at `/agent` to inspect memory, threads, GC, modules, database connections, Redis, Django models/URLs, Celery tasks, Flask extensions, Jinja2 templates, signals, routes, HTTP requests, and more — **99 diagnostic tools across 33 inspectors**.
 
 ## Version Support
 
@@ -64,11 +64,11 @@ http://localhost:8000/agent
 - **Context compression** — automatically summarizes old conversation when token limit is approached
 - **Dark-themed chat UI** with full markdown rendering (tables, code blocks, lists)
 - **Max tool rounds** (25) with forced final summary when limit is reached
-- **68 diagnostic tools** across **24 inspectors**
+- **99 diagnostic tools** across **33 inspectors**
 - Works with Flask, FastAPI, and Django
 - Zero external dependencies (no Datadog, no Grafana, no APM)
 
-## Inspectors & Tools (68)
+## Inspectors & Tools (99)
 
 ### Memory Inspector
 | Tool | Description |
@@ -228,6 +228,47 @@ http://localhost:8000/agent
 | Tool | Description |
 |------|-------------|
 | `get_warnings` | List captured Python warnings with category, message, and location |
+
+### Deadlock & Lock Contention Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `get_lock_contention` | Threading lock contention stats (wait time, hold time, acquisition count) |
+| `detect_deadlock` | Analyze all threads for deadlock patterns (circular wait detection) |
+| `get_mutex_stats` | Per-lock statistics: total acquisitions, contentions, average wait time |
+
+### Database Migration Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `get_migration_status` | Current schema version, applied count, last migration applied |
+| `get_pending_migrations` | Migrations not yet applied (version, description, dependencies) |
+| `get_migration_history` | Applied migration history (version, applied_at, duration_ms) |
+
+### Configuration Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `get_config_snapshot` | All registered config values (sensitive keys masked) |
+| `get_env_vars_masked` | Process environment variables with secret values redacted |
+| `get_config_sources` | Config source hierarchy (env, file, defaults) with effective values |
+
+### Feature Flags Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `get_feature_flags` | List all registered feature flags with current state |
+| `evaluate_feature_flag` | Evaluate a specific flag for a given context/user |
+
+### Endpoint Testing Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `test_endpoint` | Make an HTTP request to own app, return full response (status, headers, body) |
+| `batch_test_endpoints` | Test multiple endpoints in one call with aggregated results |
+| `get_endpoint_coverage` | Compare registered routes vs tested endpoints (coverage report) |
+
+### Connection Pool Inspector (v0.6.0)
+| Tool | Description |
+|------|-------------|
+| `get_pool_details` | Detailed DB pool stats (pool size, checked-in, checked-out, overflow) |
+| `detect_pool_leaks` | Heuristic leak detection (growing pool, high wait ratio, saturation) |
+| `get_pool_wait_stats` | Connection acquire wait stats (avg, P95, max wait, timeout count) |
 
 ## Custom Tools
 
