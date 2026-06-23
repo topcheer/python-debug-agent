@@ -60,6 +60,10 @@ def take_heap_snapshot() -> dict:
     snap_id = _next_id
     _next_id += 1
     summary = _snapshot_summary(snap)
+    # Enforce max 50 heap snapshots to prevent unbounded memory growth
+    if len(_snapshots) >= 50:
+        oldest = min(_snapshots.keys())
+        del _snapshots[oldest]
     _snapshots[snap_id] = {
         "id": snap_id,
         "snapshot": snap,

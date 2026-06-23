@@ -210,6 +210,10 @@ def take_snapshot() -> dict:
     snap_id = _next_id
     _next_id += 1
 
+    # Enforce max 100 snapshots to prevent unbounded growth
+    if len(_snapshots) >= 100:
+        oldest = min(_snapshots.keys())
+        del _snapshots[oldest]
     _snapshots[snap_id] = {
         "id": snap_id,
         "timestamp": time.time(),

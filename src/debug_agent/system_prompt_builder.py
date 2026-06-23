@@ -5,34 +5,111 @@ from __future__ import annotations
 from debug_agent.tool_registry import registry
 
 CATEGORY_MAP = {
+    # Memory & GC
     "heap": "Memory & GC",
     "gc": "Memory & GC",
     "memory": "Memory & GC",
     "tracemalloc": "Memory & GC",
     "object_count": "Memory & GC",
     "ref_cycle": "Memory & GC",
+    "leak": "Memory & GC",
+    "snapshot": "Memory & Snapshots",
+    "compare": "Memory & Snapshots",
+    # Process & Runtime
     "process": "Process Info",
     "runtime": "Runtime Info",
-    "thread": "Threads",
     "system": "System Info",
     "cpu": "System Info",
     "disk": "System Info",
     "uptime": "System Info",
-    "routes": "Framework",
-    "middleware": "Framework",
-    "recent": "HTTP Requests",
-    "slow": "HTTP Requests",
-    "error": "HTTP Requests",
-    "request": "HTTP Requests",
-    "module": "Modules",
-    "import": "Modules",
-    "environment": "Environment & Config",
-    "installed": "Dependencies",
-    "sqlalchemy": "Database",
-    "db_": "Database",
+    "pid": "Process Info",
+    # Threads & Locks
+    "thread": "Threads & Locks",
+    "lock": "Threads & Locks",
+    "deadlock": "Threads & Locks",
+    "contention": "Threads & Locks",
     "async": "Async Tasks",
     "event_loop": "Async Tasks",
+    # Framework
+    "routes": "Framework",
+    "middleware": "Framework",
+    "framework": "Framework",
+    "flask": "Framework",
+    "django": "Framework",
+    "fastapi": "Framework",
+    "signals": "Framework",
+    # HTTP
+    "recent": "HTTP Requests",
+    "slow": "HTTP Requests",
+    "request": "HTTP Requests",
+    "http": "HTTP Requests",
+    "outbound": "HTTP Requests",
+    # Database
+    "sqlalchemy": "Database",
+    "db": "Database",
+    "migration": "Database Migration",
+    "pending": "Database Migration",
+    # Modules & Dependencies
+    "module": "Modules",
+    "import": "Modules",
     "package": "Dependencies",
+    "installed": "Dependencies",
+    "environment": "Environment & Config",
+    # Configuration
+    "config": "Configuration",
+    "env": "Configuration",
+    # Cache
+    "cache": "Cache",
+    # Health & Security
+    "health": "Health Checks",
+    "auth": "Security",
+    "cors": "Security",
+    # Error Tracking
+    "error": "Error Tracking",
+    "warning": "Error Tracking",
+    "exception": "Error Tracking",
+    # WebSocket
+    "ws": "WebSocket",
+    "websocket": "WebSocket",
+    # Profiling
+    "start": "Profiling",
+    "stop": "Profiling",
+    "top": "Profiling",
+    "profile": "Profiling",
+    # Feature Flags
+    "feature": "Feature Flags",
+    "flag": "Feature Flags",
+    "evaluate": "Feature Flags",
+    # Endpoint Testing
+    "test": "Endpoint Testing",
+    "batch": "Endpoint Testing",
+    "endpoint": "Endpoint Testing",
+    "coverage": "Endpoint Testing",
+    # Connection Pool
+    "pool": "Connection Pool",
+    "connection": "Connection Pool",
+    # File Descriptors
+    "fd": "File Descriptors",
+    "handle": "File Descriptors",
+    # Metrics
+    "metric": "Metrics",
+    "counter": "Metrics",
+    # Build & Deployment
+    "build": "Build & Deployment",
+    "deployment": "Build & Deployment",
+    "version": "Build & Deployment",
+    # Service Registry
+    "registered": "Service Registry",
+    "service": "Service Registry",
+    # Celery / Queue
+    "celery": "Job Queue",
+    "queue": "Job Queue",
+    "task": "Async Tasks",
+    "job": "Job Queue",
+    # Redis
+    "redis": "Redis",
+    # Logging
+    "log": "Logging",
 }
 
 

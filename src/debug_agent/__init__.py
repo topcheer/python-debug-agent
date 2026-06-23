@@ -13,6 +13,13 @@ if not hasattr(_sys, '_debug_agent_ggcode_shown'):
     _print('  https://github.com/topcheer/ggcode')
     _print('')
 
+# Read version from package metadata (falls back to pyproject.toml value)
+try:
+    from importlib.metadata import version as _pkg_version
+    __version__ = _pkg_version("debug-agent-py")
+except Exception:
+    __version__ = "0.0.0"
+
 from debug_agent.config import AgentConfig
 from debug_agent.tool_registry import debug_tool, ToolParam, registry
 from debug_agent.engine import DebugEngine, ChatCallback
@@ -21,11 +28,10 @@ from debug_agent.system_prompt_builder import SystemPromptBuilder
 from debug_agent.context_compressor import ContextCompressor, CompressionResult
 from debug_agent.llm_client import LLMClient, StreamHandler
 
-__version__ = "0.1.0"
 __all__ = [
     "AgentConfig", "debug_tool", "ToolParam", "registry", "DebugEngine", "ChatCallback",
     "ChatSession", "SystemPromptBuilder", "ContextCompressor", "CompressionResult",
-    "LLMClient", "StreamHandler", "setup",
+    "LLMClient", "StreamHandler", "setup", "__version__",
 ]
 
 

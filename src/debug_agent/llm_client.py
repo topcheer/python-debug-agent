@@ -28,7 +28,10 @@ class LLMClient:
 
     def __init__(self, config: LLMConfig):
         self.cfg = config
-        self.client = httpx.Client(timeout=config.timeout_seconds)
+        self.client = httpx.Client(
+            timeout=config.timeout_seconds,
+            limits=httpx.Limits(max_connections=8, max_keepalive_connections=4),
+        )
 
     # ==================== Non-Streaming ====================
 
